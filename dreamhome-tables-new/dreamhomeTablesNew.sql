@@ -1,5 +1,8 @@
 .open dreamhomeTablesNew.sqlite
 
+.mode column 
+.mode box 
+
 DROP TABLE IF EXISTS Branch;
 DROP TABLE IF EXISTS Staff;
 DROP TABLE IF EXISTS PropertyForRent;
@@ -43,11 +46,10 @@ CREATE TABLE PropertyForRent (
     ownerNo VARCHAR(10),
     staffNo VARCHAR(10),
     branchNo VARCHAR(10),
-    FOREIGN KEY (ownerNo) REFERENCES PrivateOwner,
-    FOREIGN KEY (staffNo) REFERENCES Staff,
-    FOREIGN KEY (branchNo) REFERENCES Branch,
+    FOREIGN KEY (ownerNo) REFERENCES PrivateOwner ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (staffNo) REFERENCES Staff ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (branchNo) REFERENCES Branch ON DELETE NO ACTION ON UPDATE CASCADE,
     CHECK(SUBSTR(propertyNo,1,1) = 'P')
-
 );
 
 CREATE TABLE Client (
@@ -364,3 +366,43 @@ INSERT INTO registration (reg_id, clientno, branchno, staffno, datejoined) VALUE
 (33, 'CL1534', 'B052', 'SSU14', '2013-10-20'),
 (34, 'CL1656', 'B052', 'SMA05', '2013-10-22'),
 (35, 'CL1778', 'B394', 'SAS09', '2013-10-25');
+
+-- SELECT fname, lname, comment 
+-- FROM Client c
+-- INNER JOIN Viewing v
+-- ON c.clientNo = v.clientNo;
+
+-- For each branch office, list the staff numbers and names of staff who manage properties and the properties that they manage.
+
+-- SELECT s.branchNo, s.staffNo, s.fname, s.lname, p.propertyNo
+-- FROM Staff s 
+-- INNER JOIN PropertyForRent p 
+-- ON s.staffNo = p.staffNo
+-- ORDER BY s.branchNo, s.staffNo, propertyNo;
+
+
+--For each branch, list the staff numbers and names of staff who manage properties, 
+-- including the city in which the branch is located and the properties that the staff manage.
+
+-- SELECT b.branchNo, b.city, s.staffNo, s.fname, s.lname, p.propertyNo
+-- FROM (branch b JOIN staff s ON b.branchNo = s.branchNo) AS bs JOIN PropertyForRent p ON s.staffNo = p.staffNo
+-- ORDER BY b.branchNo, s.staffNo, p.propertyNo;
+
+-- SELECT s.branchNo, s.staffNo, COUNT(*) AS myCount
+-- FROM staff s 
+-- INNER JOIN PropertyForRent p ON s.staffno = p.staffno
+-- GROUP BY s.branchNo, s.staffNo
+-- ORDER BY s.branchNo, s.staffNo;
+
+-- SELECT *
+-- FROM branch b 
+-- LEFT JOIN PropertyForRent p
+-- ON b.city = p.city;
+
+SELECT staffNo, fname, lname 
+FROM staff s 
+WHERE EXISTS (
+    SELECT *
+    FROM branch b 
+    WHERE s.branchNo = b.branchNo AND city = 'London'
+);
